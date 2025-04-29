@@ -1,0 +1,38 @@
+---
+- name: Failed Apache HTTPD Deployment
+  hosts: webservers
+  become: true
+
+  vars:
+    smtp_user: "yourgmail@gmail.com"
+    smtp_password: "your_app_password"
+    recipient_email: "joseph@levelupla.io"
+
+  tasks:
+    - name: Install Apache HTTPD
+      package:
+        name: httpd
+        state: present
+
+    - name: Simulate failure - Attempt to start non-existent service
+      service:
+        name: not_a_real_service
+        state: started
+      ignore_errors: true
+
+    - name: Debug failed deployment
+      debug:
+        msg: "Apache HTTPD deployment failed to start service."
+
+    - name: Send Failure Email
+      community.general.mail:
+        host: smtp.gmail.com
+        port: 587
+        username: "{{ smtp_user }}"
+        password: "{{ smtp_password }}"
+        to: "{{ recipient_email }}"
+        subject: "Apache HTTPD Deployment - Failure"
+        body: |
+          The Apache HTTPD deployment encountered an error: the service failed to start.
+        secure: starttls
+

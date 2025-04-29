@@ -1,0 +1,43 @@
+---
+- name: Successful Apache HTTPD Deployment
+  hosts: webservers
+  become: true
+
+  vars:
+    smtp_user: "yourgmail@gmail.com"
+    smtp_password: "your_app_password"
+    recipient_email: "joseph@levelupla.io"
+
+  tasks:
+    - name: Install Apache HTTPD
+      package:
+        name: httpd
+        state: present
+
+    - name: Ensure Apache is enabled and running
+      service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: Create custom index.html
+      copy:
+        dest: /var/www/html/index.html
+        content: "This is our website"
+
+    - name: Debug successful deployment
+      debug:
+        msg: "Apache HTTPD successfully deployed and configured."
+
+    - name: Send Success Email
+      community.general.mail:
+        host: smtp.gmail.com
+        port: 587
+        username: "{{ smtp_user }}"
+        password: "{{ smtp_password }}"
+        to: "{{ recipient_email }}"
+        subject: "Apache HTTPD Deployment - Success"
+        body: |
+          The Apache HTTPD server was successfully deployed, configured, and is now running.
+        secure: starttls
+

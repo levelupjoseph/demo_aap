@@ -1,0 +1,26 @@
+---
+- name: Uninstall Apache HTTPD
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Stop Apache service if running
+      service:
+        name: httpd
+        state: stopped
+      ignore_errors: true
+
+    - name: Uninstall Apache HTTPD
+      package:
+        name: httpd
+        state: absent
+
+    - name: Remove index.html
+      file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: Debug uninstallation complete
+      debug:
+        msg: "Apache HTTPD has been uninstalled and cleaned up."
+
