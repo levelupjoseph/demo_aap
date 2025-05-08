@@ -1,0 +1,23 @@
+---
+- name: Rollback Apache Configuration
+  hosts: all
+  become: true
+  
+  tasks:
+    - name: Stop Apache service
+      ansible.builtin.systemd:
+        name: httpd
+        state: stopped
+      ignore_errors: true
+
+    - name: Disable Apache service
+      ansible.builtin.systemd:
+        name: httpd
+        enabled: false
+      ignore_errors: true
+
+    - name: Remove Apache httpd
+      ansible.builtin.yum:
+        name: httpd
+        state: absent
+      ignore_errors: true
