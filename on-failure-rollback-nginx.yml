@@ -1,8 +1,9 @@
+---
 - name: Rollback Configuration
   hosts: all
   become: true
+  
   tasks:
-
     - name: Remove nginx
       ansible.builtin.yum:
         name: nginx
