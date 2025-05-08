@@ -1,0 +1,15 @@
+- name: Apply Configuration
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Install nginx
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+      register: install_result
+
+    - name: Fail workflow explicitly if install fails
+      ansible.builtin.fail:
+        msg: "Nginx installation failed; triggering rollback."
+      when: install_result is failed
