@@ -1,0 +1,30 @@
+- name: Apply Configuration
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Install nginx
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+      register: taskresults
+
+    - name: Check if task succeeded
+      ansible.builtin.debug:
+        msg: "Nginx install succeeded"
+      when: taskresults is success
+
+    - name: Check if task failed
+      ansible.builtin.debug:
+        msg: "Nginx install failed"
+      when: taskresults is failed
+
+    - name: Check if task changed anything
+      ansible.builtin.debug:
+        msg: "Nginx installation caused changes"
+      when: taskresults is changed
+
+    - name: Print raw task result
+      ansible.builtin.debug:
+        var: taskresults
+        verbosity: 2
