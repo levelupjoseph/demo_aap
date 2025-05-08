@@ -1,3 +1,4 @@
+---
 - name: Apply Configuration
   hosts: all
   become: true
