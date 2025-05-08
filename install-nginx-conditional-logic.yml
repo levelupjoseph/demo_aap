@@ -2,8 +2,8 @@
 - name: Apply Configuration
   hosts: all
   become: true
+  
   tasks:
-
     - name: Install nginx
       ansible.builtin.yum:
         name: nginx
