@@ -1,0 +1,30 @@
+- name: Rollback Configuration
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Remove nginx
+      ansible.builtin.yum:
+        name: nginx
+        state: absent
+      register: taskresults
+
+    - name: Confirm nginx removal succeeded
+      ansible.builtin.debug:
+        msg: "Nginx removal successful"
+      when: taskresults is success
+
+    - name: Confirm nginx removal failed
+      ansible.builtin.debug:
+        msg: "Nginx removal failed"
+      when: taskresults is failed
+
+    - name: Confirm removal caused a change
+      ansible.builtin.debug:
+        msg: "Nginx removal changed system state"
+      when: taskresults is changed
+
+    - name: Print raw task result
+      ansible.builtin.debug:
+        var: taskresults
+        verbosity: 2
