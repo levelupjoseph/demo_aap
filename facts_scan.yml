@@ -6,6 +6,18 @@
   tasks:
     - name: Get packages
       ansible.builtin.package_facts:
+      register: package_facts
+
+    - name: Print raw package result
+      ansible.builtin.debug:
+        var: package_facts
+        verbosity: 3
 
     - name: Get services
       ansible.builtin.service_facts:
+      register: service_facts
+
+    - name: Print raw service result
+      ansible.builtin.debug:
+        var: service_facts
+        verbosity: 3
