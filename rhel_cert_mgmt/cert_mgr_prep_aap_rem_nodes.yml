@@ -1,3 +1,4 @@
+---
 - name: Validate and Prepare Keystore and Trust Anchor Paths
   hosts: all
   become: true
@@ -11,16 +12,16 @@
         path: "{{ keystore_dir }}"
         state: directory
         mode: '0755'
-        owner: root
-        group: root
+        owner: ec2-user
+        group: ec2-user
 
     - name: Ensure system trust anchor directory exists
       ansible.builtin.file:
         path: "{{ anchor_dir }}"
         state: directory
         mode: '0755'
-        owner: root
-        group: root
+        owner: ec2-user
+        group: ec2-user
 
     - name: Check write access to keystore directory
       ansible.builtin.command: "test -w {{ keystore_dir }}"
@@ -31,8 +32,8 @@
       ansible.builtin.file:
         path: "{{ keystore_dir }}"
         mode: '0755'
-        owner: root
-        group: root
+        owner: ec2-user
+        group: ec2-user
       when: keystore_write_check.rc != 0
 
     - name: Check write access to system trust anchor directory
@@ -44,8 +45,8 @@
       ansible.builtin.file:
         path: "{{ anchor_dir }}"
         mode: '0755'
-        owner: root
-        group: root
+        owner: ec2-user
+        group: ec2-user
       when: anchor_write_check.rc != 0
 
     - name: Check if keytool is available
@@ -69,4 +70,3 @@
         name: ca-certificates
         state: present
       when: ca_trust_check.rc != 0
-
