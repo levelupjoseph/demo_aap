@@ -1,0 +1,98 @@
+---
+- name: Manage Java Keystore and System CA Trust (Flat Version)
+  hosts: all
+  become: true
+  vars:
+    cert_source_dir: /etc/pki/ca-trust/source/anchors/
+    java_keystore_path: /opt/cacerts
+    java_keystore_password: changeit
+    cert_list: "{{ lookup('fileglob', cert_source_dir + '*.crt', wantlist=True) }}"
+
+  tasks:
+    - name: Gather current user info
+      ansible.builtin.setup:
+        filter: ansible_user
+
+    - name: Fail if no certs found
+      ansible.builtin.fail:
+        msg: "No .crt files found in {{ cert_source_dir }}"
+      when: cert_list | length == 0
+
+    - name: Process each certificate file
+      block:
+        - name: Check if certificate exists
+          ansible.builtin.stat:
+            path: "{{ cert_path }}"
+          register: cert_status
+
+        - name: Fail if certificate is missing
+          ansible.builtin.fail:
+            msg: "Certificate not found at {{ cert_path }}"
+          when: not cert_status.stat.exists
+
+        - name: Copy certificate to EE-accessible path
+          ansible.builtin.copy:
+            src: "{{ cert_path }}"
+            dest: "/tmp/{{ cert_path | basename }}"
+            remote_src: yes
+
+        - name: Check if keystore file exists
+          ansible.builtin.stat:
+            path: "{{ java_keystore_path }}"
+          register: keystore_status
+
+        - name: Check write permission on keystore file
+          ansible.builtin.command: "test -w {{ java_keystore_path }}"
+          register: write_check
+          ignore_errors: true
+          when: keystore_status.stat.exists
+
+        - name: Check read permission on keystore file
+          ansible.builtin.command: "test -r {{ java_keystore_path }}"
+          register: read_check
+          ignore_errors: true
+          when: keystore_status.stat.exists
+
+        - name: Check write permission on parent directory if keystore doesn't exist
+          ansible.builtin.command: "test -w {{ java_keystore_path | dirname }}"
+          register: dir_write_check
+          ignore_errors: true
+          when: not keystore_status.stat.exists
+
+        - name: Fail if keystore file is not writable
+          ansible.builtin.fail:
+            msg: "User '{{ ansible_user }}' does not have write permissions on {{ java_keystore_path }}"
+          when: keystore_status.stat.exists and write_check.rc != 0
+
+        - name: Fail if keystore file is not readable
+          ansible.builtin.fail:
+            msg: "User '{{ ansible_user }}' does not have read permissions on {{ java_keystore_path }}"
+          when: keystore_status.stat.exists and read_check.rc != 0
+
+        - name: Fail if keystore does not exist and parent dir is not writable
+          ansible.builtin.fail:
+            msg: "User '{{ ansible_user }}' does not have write permissions on directory {{ java_keystore_path | dirname }}"
+          when: not keystore_status.stat.exists and dir_write_check.rc != 0
+
+        - name: Import certificate into Java keystore
+          community.general.java_cert:
+            cert_path: "/tmp/{{ cert_path | basename }}"
+            keystore_path: "{{ java_keystore_path }}"
+            keystore_pass: "{{ java_keystore_password }}"
+            keystore_create: true
+            state: present
+            cert_alias: "{{ cert_path | basename | regex_replace('\\.[^.]+$', '') }}"
+            trust_cacert: true
+
+        - name: Copy certificate to system trust anchors
+          ansible.builtin.copy:
+            src: "{{ cert_path }}"
+            dest: "{{ cert_source_dir }}{{ cert_path | basename }}"
+            remote_src: yes
+      loop: "{{ cert_list }}"
+      loop_control:
+        loop_var: cert_path
+
+    - name: Update system CA trust
+      ansible.builtin.command: update-ca-trust
+

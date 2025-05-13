@@ -1,0 +1,72 @@
+- name: Validate and Prepare Keystore and Trust Anchor Paths
+  hosts: all
+  become: true
+  vars:
+    keystore_dir: /opt/cacerts
+    anchor_dir: /etc/pki/ca-trust/source/anchors/
+
+  tasks:
+    - name: Ensure keystore parent directory exists
+      ansible.builtin.file:
+        path: "{{ keystore_dir }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Ensure system trust anchor directory exists
+      ansible.builtin.file:
+        path: "{{ anchor_dir }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Check write access to keystore directory
+      ansible.builtin.command: "test -w {{ keystore_dir }}"
+      register: keystore_write_check
+      ignore_errors: true
+
+    - name: Fix write permission on keystore directory if needed
+      ansible.builtin.file:
+        path: "{{ keystore_dir }}"
+        mode: '0755'
+        owner: root
+        group: root
+      when: keystore_write_check.rc != 0
+
+    - name: Check write access to system trust anchor directory
+      ansible.builtin.command: "test -w {{ anchor_dir }}"
+      register: anchor_write_check
+      ignore_errors: true
+
+    - name: Fix write permission on anchor directory if needed
+      ansible.builtin.file:
+        path: "{{ anchor_dir }}"
+        mode: '0755'
+        owner: root
+        group: root
+      when: anchor_write_check.rc != 0
+
+    - name: Check if keytool is available
+      ansible.builtin.command: which keytool
+      register: keytool_check
+      ignore_errors: true
+
+    - name: Install Java if keytool is missing
+      ansible.builtin.package:
+        name: java-11-openjdk
+        state: present
+      when: keytool_check.rc != 0
+
+    - name: Check if update-ca-trust is available
+      ansible.builtin.command: which update-ca-trust
+      register: ca_trust_check
+      ignore_errors: true
+
+    - name: Install ca-certificates if update-ca-trust is missing
+      ansible.builtin.package:
+        name: ca-certificates
+        state: present
+      when: ca_trust_check.rc != 0
+
