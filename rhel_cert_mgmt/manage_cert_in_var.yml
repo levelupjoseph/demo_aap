@@ -4,7 +4,7 @@
   become: true
   vars:
     cert_remote_path: /etc/pki/ca-trust/source/anchors/mycert.crt
-    cert_local_dest: /var/lib/awx/certs/mycert.crt
+    cert_ee_path: /var/lib/awx/certs/mycert.crt
     java_keystore_path: /opt/demo-keystore/cacerts
     java_keystore_password: changeit
     cert_alias: my_custom_ca
@@ -24,11 +24,11 @@
         msg: "Certificate not found at {{ cert_remote_path }}"
       when: not cert_status.stat.exists
 
-    - name: Fetch certificate to controller under /tmp
-      ansible.builtin.fetch:
+    - name: Copy certificate to EE-accessible path
+      ansible.builtin.copy:
         src: "{{ cert_remote_path }}"
-        dest: "{{ cert_local_dest }}"
-        flat: yes
+        dest: "{{ cert_ee_path }}"
+        remote_src: yes
 
     - name: Check if keystore file exists
       ansible.builtin.stat:
@@ -70,7 +70,7 @@
 
     - name: Import certificate into Java keystore
       community.general.java_cert:
-        cert_path: "{{ cert_local_dest }}"
+        cert_path: "{{ cert_ee_path }}"
         keystore_path: "{{ java_keystore_path }}"
         keystore_pass: "{{ java_keystore_password }}"
         keystore_create: true
