@@ -1,0 +1,27 @@
+---
+- name: Cert copy on Linux Servers
+  hosts: all
+  become: true
+  become_user: root
+  tasks:
+  - name: Backup cacerts file 
+    copy: 
+      src: /etc/pki/ca-trust/extracted/java/cacerts
+      dest: /etc/pki/ca-trust/extracted/java/cacerts.back 
+      remote_src: yes
+  - name: list directories
+    ansible.builtin.shell: "cd /opt/certs/ && ls -lrt"
+    delegate_to: localhost
+    
+  - name: Copy certificate/file
+    ansible.builtin.copy: 
+      src: "{{ item }}"
+      dest: /etc/pki/ca-trust/source/anchors
+    with_fileglob:
+     - "/opt/certs/.crt"
+      ##remote_src: false
+    #delegate_to: localhost
+  - name: Run command
+    ansible.builtin.command: update-ca-trust
+  - name: Run command
+    ansible.builtin.command: p11-kit extract --format=java-cacerts --filter=certificates --overwrite --purpose server-auth /etc/pki/ca-trust/extracted/java/cacerts
