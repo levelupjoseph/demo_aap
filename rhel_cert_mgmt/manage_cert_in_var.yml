@@ -1,10 +1,10 @@
 ---
-- name: Manage Java Keystore and Import Certificate
+- name: Manage Java Keystore and System CA Trust
   hosts: all
   become: true
   vars:
     cert_remote_path: /etc/pki/ca-trust/source/anchors/mycert.crt
-    cert_ee_path: /var/lib/awx/certs/mycert.crt
+    cert_ee_path: /tmp/mycert.crt
     java_keystore_path: /opt/demo-keystore/cacerts
     java_keystore_password: changeit
     cert_alias: my_custom_ca
@@ -77,3 +77,12 @@
         state: present
         cert_alias: "{{ cert_alias }}"
         trust_cacert: true
+
+    - name: Copy certificate to system trust anchors
+      ansible.builtin.copy:
+        src: "{{ cert_remote_path }}"
+        dest: /etc/pki/ca-trust/source/anchors/mycert.crt
+        remote_src: yes
+
+    - name: Update system CA trust
+      ansible.builtin.command: update-ca-trust
