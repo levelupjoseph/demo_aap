@@ -4,7 +4,7 @@
   become: true
   vars:
     cert_remote_path: /etc/pki/ca-trust/source/anchors/mycert.crt
-    cert_local_dest: /tmp/mycert.crt
+    cert_local_dest: /var/lib/awx/certs/mycert.crt
     java_keystore_path: /opt/demo-keystore/cacerts
     java_keystore_password: changeit
     cert_alias: my_custom_ca
