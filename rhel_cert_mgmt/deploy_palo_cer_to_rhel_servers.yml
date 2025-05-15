@@ -19,7 +19,7 @@
 
     - name: Display results from samba-client install
       debug:
-        msg: "{{ samba-client_output }}"
+        var: samba-client_output.stdout
 
     - name: Create working directory for certificate
       delegate_to: localhost
