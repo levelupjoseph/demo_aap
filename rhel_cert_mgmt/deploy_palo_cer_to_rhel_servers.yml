@@ -12,6 +12,8 @@
   tasks:
     - name: Ensure samba-client is installed on control node
       delegate_to: localhost
+      become: true
+      become_user: root
       ansible.builtin.dnf:
         name: samba-client
         state: present
@@ -19,6 +21,8 @@
 
     - name: Create working directory for certificate
       delegate_to: localhost
+      become: true
+      beocme_user: root
       ansible.builtin.file:
         path: "/var/tmp/palo_cert"
         state: directory
@@ -26,6 +30,8 @@
 
     - name: Fetch certificate from Windows share
       delegate_to: localhost
+      become: true
+      beocme_user: root
       ansible.builtin.shell: |
         smbclient '{{ smb_share }}' -N -c 'lcd /var/tmp/palo_cert; prompt OFF; mget {{ cert_pattern }}'
       args:
@@ -34,11 +40,15 @@
 
     - name: Show output from smbclient
       delegate_to: localhost
+      become: true
+      beocme_user: root
       ansible.builtin.debug:
         var: smb_fetch_output.stdout
 
     - name: Validate smbclient fetch success
       delegate_to: localhost
+      become: true
+      beocme_user: root
       ansible.builtin.fail:
         msg: "Failed to fetch certificate from SMB share."
       when: smb_fetch_output.rc != 0
