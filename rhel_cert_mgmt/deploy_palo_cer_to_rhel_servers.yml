@@ -21,8 +21,6 @@
 
     - name: Create working directory for certificate
       delegate_to: localhost
-      become: true
-      beocme_user: root
       ansible.builtin.file:
         path: "/var/tmp/palo_cert"
         state: directory
