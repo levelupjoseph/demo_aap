@@ -1,7 +1,8 @@
 ---
 - name: Deploy Palo Cert to RHEL servers
-  hosts: rhel_servers
+  hosts: all
   become: true
+  become_user: root
   vars:
     smb_share: "//Blueperlw1/Bankwide/PaloCerts"
     cert_pattern: "*.crt"
