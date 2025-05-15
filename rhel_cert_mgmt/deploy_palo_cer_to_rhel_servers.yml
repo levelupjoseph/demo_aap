@@ -1,0 +1,81 @@
+---
+- name: Deploy Palo Cert to RHEL servers
+  hosts: rhel_servers
+  become: true
+  vars:
+    smb_share: "//Blueperlw1/Bankwide/PaloCerts"
+    cert_pattern: "*.crt"
+    local_cert_path: "{{ lookup('ansible.builtin.first_found', params={'files': lookup('ansible.builtin.find', paths='/var/tmp/palo_cert', patterns=cert_pattern).files | map(attribute='path') | list }) }}"
+    remote_cert_dir: "/etc/pki/ca-trust/source/anchors"
+
+  tasks:
+    - name: Ensure smbclient is installed on control node
+      delegate_to: localhost
+      ansible.builtin.package:
+        name: samba-client
+        state: present
+      register: samba-client_output
+
+    - name: Display results from samba-client install
+      debug:
+        msg: "{{ samba-client_output }}"
+
+    - name: Create working directory for certificate
+      delegate_to: localhost
+      ansible.builtin.file:
+        path: "/var/tmp/palo_cert"
+        state: directory
+        mode: '0755'
+
+    - name: Fetch certificate from Windows share
+      delegate_to: localhost
+      ansible.builtin.shell: |
+        smbclient '{{ smb_share }}' -N -c 'lcd /var/tmp/palo_cert; prompt OFF; mget {{ cert_pattern }}'
+      args:
+        chdir: "/var/tmp/palo_cert"
+      register: smb_fetch_output
+
+    - name: Show output from smbclient
+      delegate_to: localhost
+      ansible.builtin.debug:
+        var: smb_fetch_output.stdout
+
+    - name: Validate smbclient fetch success
+      delegate_to: localhost
+      ansible.builtin.fail:
+        msg: "Failed to fetch certificate from SMB share."
+      when: smb_fetch_output.rc != 0
+
+    - name: Copy certificate to remote server
+      ansible.builtin.copy:
+        src: "{{ local_cert_path }}"
+        dest: "{{ remote_cert_dir }}/{{ local_cert_path | basename }}"
+        owner: root
+        group: root
+        mode: '0644'
+      register: copy_result
+
+    - name: Show copy result
+      ansible.builtin.debug:
+        var: copy_result
+
+    - name: Update CA trust on remote host
+      ansible.builtin.command: update-ca-trust
+      register: update_ca_output
+      changed_when: "'Updating' in update_ca_output.stdout"
+
+    - name: Show update-ca-trust result
+      ansible.builtin.debug:
+        var: update_ca_output.stdout
+
+    - name: Convert certs to Java format
+      ansible.builtin.command: >
+        p11-kit extract --format=java-cacerts
+        --filter=certificates --overwrite
+        --purpose server-auth /etc/pki/ca-trust/extracted/java/cacerts
+      register: p11kit_output
+
+    - name: Show p11-kit output
+      ansible.builtin.debug:
+        var: p11kit_output.stdout
+
