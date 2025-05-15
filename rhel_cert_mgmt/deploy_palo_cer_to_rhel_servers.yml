@@ -17,10 +17,6 @@
         state: present
       register: samba-client_output
 
-    - name: Display results from samba-client install
-      debug:
-        var: samba-client_output.stdout
-
     - name: Create working directory for certificate
       delegate_to: localhost
       ansible.builtin.file:
