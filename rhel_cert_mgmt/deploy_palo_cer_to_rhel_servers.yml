@@ -16,8 +16,6 @@
         name: samba-client
         state: present
         update_cache: yes
-        become: true
-        become_user: root
 
     - name: Create working directory for certificate
       delegate_to: localhost
