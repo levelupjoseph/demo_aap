@@ -10,12 +10,12 @@
     remote_cert_dir: "/etc/pki/ca-trust/source/anchors"
 
   tasks:
-    - name: Ensure smbclient is installed on control node
+    - name: Ensure samba-client is installed on control node
       delegate_to: localhost
       ansible.builtin.package:
-        name: samba
+        name: samba-client
         state: present
-
+        update_cache: yes
 
     - name: Create working directory for certificate
       delegate_to: localhost
@@ -75,4 +75,3 @@
     - name: Show p11-kit output
       ansible.builtin.debug:
         var: p11kit_output.stdout
-
