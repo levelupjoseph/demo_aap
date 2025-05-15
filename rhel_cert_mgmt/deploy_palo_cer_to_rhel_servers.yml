@@ -15,7 +15,6 @@
       ansible.builtin.package:
         name: samba-client
         state: present
-      register: samba-client_output
 
     - name: Create working directory for certificate
       delegate_to: localhost
