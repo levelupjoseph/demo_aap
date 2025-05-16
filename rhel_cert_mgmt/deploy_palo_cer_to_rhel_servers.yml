@@ -4,7 +4,7 @@
   become: true
   become_user: root
   vars:
-    smb_share: "//Blueperlw1/Bankwide/PaloCerts"
+    smb_share: "////Bankwide/PaloCerts"
     cert_pattern: "*.crt"
     local_cert_path: "{{ lookup('ansible.builtin.first_found', params={'files': lookup('ansible.builtin.find', paths='/var/tmp/palo_cert', patterns=cert_pattern).files | map(attribute='path') | list }) }}"
     remote_cert_dir: "/etc/pki/ca-trust/source/anchors"
@@ -27,8 +27,6 @@
         mode: '0755'
 
     - name: Fetch certificate from Windows share
-      delegate_to: localhost
-      become: true
       beocme_user: root
       ansible.builtin.shell: |
         smbclient '{{ smb_share }}' -N -c 'lcd /var/tmp/palo_cert; prompt OFF; mget {{ cert_pattern }}'
@@ -38,8 +36,6 @@
 
     - name: Show output from smbclient
       delegate_to: localhost
-      become: true
-      beocme_user: root
       ansible.builtin.debug:
         var: smb_fetch_output.stdout
 
