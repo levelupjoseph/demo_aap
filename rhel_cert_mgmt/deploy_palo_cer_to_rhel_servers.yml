@@ -40,8 +40,6 @@
 
     - name: Validate smbclient fetch success
       delegate_to: localhost
-      become: true
-      beocme_user: root
       ansible.builtin.fail:
         msg: "Failed to fetch certificate from SMB share."
       when: smb_fetch_output.rc != 0
