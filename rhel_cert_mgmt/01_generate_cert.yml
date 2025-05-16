@@ -1,0 +1,43 @@
+---
+- name: Generate and install certificate on cert-builder
+  hosts: cert-builder
+  become: true
+  vars:
+    cert_share: "//node3/Bankwide/PaloCerts"
+    cert_file: *.crt
+    mount_point: /mnt/palo_certs
+    # cifs_user: your_user
+    # cifs_pass: your_password
+
+  tasks:
+    - name: Ensure mount point exists
+      ansible.builtin.file:
+        path: "{{ mount_point }}"
+        state: directory
+
+    - name: Mount CIFS share
+      ansible.posix.mount:
+        path: "{{ mount_point }}"
+        src: "{{ cert_share }}"
+        fstype: cifs
+        opts: "username={{ cifs_user }},password={{ cifs_pass }},ro"
+        state: mounted
+
+    - name: Copy cert from share to anchors
+      ansible.builtin.copy:
+        src: "{{ mount_point }}/{{ cert_file }}"
+        dest: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
+        remote_src: true
+
+    - name: Unmount share
+      ansible.posix.mount:
+        path: "{{ mount_point }}"
+        state: unmounted
+
+    - name: Update Linux CA trust
+      ansible.builtin.command: update-ca-trust
+
+    - name: Convert cert to Java keystore
+      ansible.builtin.command: >
+        p11-kit extract --format=java-cacerts --filter=certificates --overwrite --purpose server-auth
+        /etc/pki/ca-trust/extracted/java/cacerts
