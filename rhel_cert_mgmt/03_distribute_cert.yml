@@ -1,14 +1,24 @@
 ---
-- name: Distribute cert and keystore from cert-builder
-  hosts: all
+- name: Distribute detected cert to prod servers
+  hosts: all:!cert-builder
   become: true
   vars:
-    cert_file: *.crt
     source_host: node1
 
   tasks:
 
-    - name: Copy .crt file from cert-builder
+    - name: Read cert name from cert-builder
+      ansible.builtin.slurp:
+        src: /tmp/current_cert_name.txt
+      delegate_to: "{{ source_host }}"
+      run_once: true
+      register: cert_name_data
+
+    - name: Set cert_file fact
+      ansible.builtin.set_fact:
+        cert_file: "{{ cert_name_data['content'] | b64decode | trim }}"
+
+    - name: Fetch .crt from cert-builder
       ansible.builtin.fetch:
         src: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
         dest: "/tmp/{{ cert_file }}"
@@ -22,7 +32,7 @@
         dest: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
         remote_src: false
 
-    - name: Copy Java cacerts from cert-builder
+    - name: Fetch Java cacerts from cert-builder
       ansible.builtin.fetch:
         src: "/etc/pki/ca-trust/extracted/java/cacerts"
         dest: "/tmp/cacerts"
@@ -37,4 +47,4 @@
         remote_src: false
 
     - name: Update Linux CA trust
-      ansible.builtin.command: update-ca-trust
+      ansible.builtin.command: update-ca-tr
