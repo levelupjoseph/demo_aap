@@ -1,0 +1,13 @@
+---
+- name: Ensure required packages are installed on all hosts
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Install required packages
+      ansible.builtin.yum:
+        name:
+          - cifs-utils
+          - p11-kit
+          - ca-certificates
+        state: present
