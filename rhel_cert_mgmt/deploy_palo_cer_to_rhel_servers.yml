@@ -35,13 +35,10 @@
       debug:
         var: path_debug.stdout
 
-    - name: Fetch certificate from Windows share
+    - name: Fetch certificate using wrapper script
       delegate_to: localhost
-      ansible.builtin.shell: |
-        smbclient '{{ smb_share }}' -N -c 'lcd /var/tmp/palo_cert; prompt OFF; mget {{ cert_pattern }}'
-      args:
-        chdir: "/var/tmp/palo_cert"
-      register: smb_fetch_outputyaml
+      ansible.builtin.command: /usr/local/bin/fetch_cert.sh
+      register: smb_fetch_output
 
    # - name: Fetch certificate from Windows share
    #   delegate_to: localhost
