@@ -29,7 +29,7 @@
     - name: Fetch certificate from Windows share
       delegate_to: localhost
       ansible.builtin.shell: |
-        /usr/bin/smbclient '{{ smb_share }}' -N -c 'lcd /var/tmp/palo_cert; prompt OFF; mget {{ cert_pattern }}'
+        /bin/smbclient '{{ smb_share }}' -N -c 'lcd /var/tmp/palo_cert; prompt OFF; mget {{ cert_pattern }}'
       args:
         chdir: "/var/tmp/palo_cert"
       register: smb_fetch_output
