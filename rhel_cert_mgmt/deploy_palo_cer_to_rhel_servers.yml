@@ -28,7 +28,7 @@
 
     - name: Fetch certificate using wrapper script
       delegate_to: localhost
-      ansible.builtin.command: /usr/local/bin/fetch_cert.sh
+      ansible.builtin.command: /usr/share/certs/fetch_cert.sh
       register: smb_fetch_output
 
    # - name: Fetch certificate from Windows share
