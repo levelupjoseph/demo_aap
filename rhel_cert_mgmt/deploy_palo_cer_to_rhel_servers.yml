@@ -32,8 +32,8 @@
       register: path_debug
 
     - name: Show PATH seen by Ansible
-     debug:
-       var: path_debug.stdout
+      debug:
+        var: path_debug.stdout
 
     - name: Fetch certificate from Windows share
       delegate_to: localhost
