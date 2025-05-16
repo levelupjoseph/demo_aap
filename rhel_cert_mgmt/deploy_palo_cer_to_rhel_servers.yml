@@ -4,7 +4,7 @@
   become: true
   become_user: root
   vars:
-    smb_share: "////node3/Bankwide/PaloCerts"
+    smb_share: "//node3/samba_share"
     cert_pattern: "*.crt"
     local_cert_path: "{{ lookup('ansible.builtin.first_found', params={'files': lookup('ansible.builtin.find', paths='/var/tmp/palo_cert', patterns=cert_pattern).files | map(attribute='path') | list }) }}"
     remote_cert_dir: "/etc/pki/ca-trust/source/anchors"
