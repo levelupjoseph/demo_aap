@@ -25,8 +25,6 @@
         path: "/var/tmp/palo_cert"
         state: directory
         mode: '0755'
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
 
     - name: Fetch certificate from Windows share
       ansible.builtin.shell: |
