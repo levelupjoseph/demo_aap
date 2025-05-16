@@ -1,5 +1,5 @@
 ---
-- name: Distribute detected cert to prod servers
+- name: Distribute cert and Java cacerts to all other hosts
   hosts: all:!cert-builder
   become: true
   vars:
@@ -7,7 +7,7 @@
 
   tasks:
 
-    - name: Read cert name from cert-builder
+    - name: Get cert filename from cert-builder
       ansible.builtin.slurp:
         src: /tmp/current_cert_name.txt
       delegate_to: "{{ source_host }}"
@@ -31,6 +31,9 @@
         src: "/tmp/{{ cert_file }}"
         dest: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
         remote_src: false
+        owner: root
+        group: root
+        mode: '0644'
 
     - name: Fetch Java cacerts from cert-builder
       ansible.builtin.fetch:
@@ -45,6 +48,9 @@
         src: "/tmp/cacerts"
         dest: "/etc/pki/ca-trust/extracted/java/cacerts"
         remote_src: false
+        owner: root
+        group: root
+        mode: '0644'
 
-    - name: Update Linux CA trust
-      ansible.builtin.command: update-ca-tr
+    - name: Update CA trust
+      ansible.builtin.command: update-ca-trust
