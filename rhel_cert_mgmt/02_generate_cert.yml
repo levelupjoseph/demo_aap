@@ -5,7 +5,7 @@
   become: true
   vars:
     become_user: ec2-user
-    cert_share: "//node3/samba_share"
+    cert_share: "//node3/Samba_Share"
     mount_point: /mnt/palo_certs
    # cifs_user: your_user
    # cifs_pass: your_password
@@ -21,7 +21,7 @@
         path: "{{ mount_point }}"
         src: "{{ cert_share }}"
         fstype: cifs
-      #  opts: "username={{ cifs_user }},password={{ cifs_pass }},ro"
+        opts: "guest,ro"
         state: mounted
 
     - name: Find the only .crt file
