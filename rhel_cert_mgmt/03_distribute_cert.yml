@@ -8,6 +8,14 @@
     ansible_user: ec2-user
     
   tasks:
+    - name: Install required packages
+      ansible.builtin.yum:
+        name:
+          - ca-certificates
+        # This below package is required if and when using keytool command on remote hosts. 
+        # - java-11-openjdk
+        state: present
+        
     - name: Get cert filename from cert builder
       ansible.builtin.slurp:
         src: /tmp/current_cert_name.txt
@@ -65,4 +73,3 @@
 
     - name: Update CA trust
       ansible.builtin.command: update-ca-trust
-
