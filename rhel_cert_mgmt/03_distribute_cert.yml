@@ -1,13 +1,13 @@
 ---
 - name: Distribute cert and Java cacerts to all other hosts
-  hosts: all:!cert-builder
+  hosts: all
   become: true
   vars:
     source_host: node1
     ansible_user: ec2-user
     
   tasks:
-    - name: Get cert filename from cert-builder
+    - name: Get cert filename from cert builder
       ansible.builtin.slurp:
         src: /tmp/current_cert_name.txt
       delegate_to: "{{ source_host }}"
@@ -18,7 +18,7 @@
       ansible.builtin.set_fact:
         cert_file: "{{ cert_name_data['content'] | b64decode | trim }}"
 
-    - name: Fetch .crt from cert-builder
+    - name: Fetch .crt from cert builder
       ansible.builtin.fetch:
         src: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
         dest: "/tmp/{{ cert_file }}"
@@ -35,7 +35,7 @@
         group: root
         mode: '0644'
 
-    - name: Fetch Java cacerts from cert-builder
+    - name: Fetch Java cacerts from cert builder
       ansible.builtin.fetch:
         src: "/etc/pki/ca-trust/extracted/java/cacerts"
         dest: "/tmp/cacerts"
