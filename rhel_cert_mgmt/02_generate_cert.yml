@@ -2,8 +2,8 @@
 - name: Retrieve and install cert on cert-builder
   hosts: cert-builder
   become: true
-  become_user: ec2-user
   vars:
+    become_user: ec2-user
     cert_share: "//node3/samba_share"
     mount_point: /mnt/palo_certs
    # cifs_user: your_user
