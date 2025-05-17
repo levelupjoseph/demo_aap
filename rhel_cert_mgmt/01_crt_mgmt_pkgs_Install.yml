@@ -2,7 +2,9 @@
 - name: Ensure required packages are installed on all hosts
   hosts: all
   become: true
-  become_user: ec2-user
+  vars:
+    become_user: ec2-user
+
   tasks:
     - name: Install required packages
       ansible.builtin.yum:
