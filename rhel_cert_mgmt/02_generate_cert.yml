@@ -1,6 +1,6 @@
 ---
 - name: Retrieve and install cert on cert-builder
-  hosts: cert-builder
+  hosts: node1
   become: true
   vars:
     become_user: ec2-user
