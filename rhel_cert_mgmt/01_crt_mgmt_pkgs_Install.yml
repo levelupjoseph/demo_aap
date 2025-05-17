@@ -13,4 +13,5 @@
           - cifs-utils
           - p11-kit
           - ca-certificates
+          - java-11-openjdk
         state: present
