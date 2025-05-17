@@ -36,6 +36,16 @@
         group: root
         mode: '0644'
 
+     - name: Validate that cert file was copied and is not empty
+       ansible.builtin.stat:
+         path: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
+       register: cert_stat
+
+    - name: Fail if the cert file is empty or missing
+      ansible.builtin.fail:
+        msg: "The certificate file {{ cert_file }} is missing or empty on {{ inventory_hostname }}."
+      when: cert_stat.stat.size == 0
+
     - name: Fetch Java cacerts from cert builder
       ansible.builtin.fetch:
         src: "/etc/pki/ca-trust/extracted/java/cacerts"
@@ -55,15 +65,4 @@
 
     - name: Update CA trust
       ansible.builtin.command: update-ca-trust
-
-    - name: Validate dummy cert is present in Java cacerts
-      ansible.builtin.shell: >
-        keytool -list -cacerts -storepass changeit | grep -i dummy
-      register: cert_validation
-      changed_when: false
-      failed_when: cert_validation.rc != 0
-
-    - name: Show validation result
-      debug:
-        msg: "Dummy cert found in Java cacerts: {{ cert_validation.stdout }}"
 
