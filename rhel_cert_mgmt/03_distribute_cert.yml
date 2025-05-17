@@ -55,3 +55,15 @@
 
     - name: Update CA trust
       ansible.builtin.command: update-ca-trust
+
+    - name: Validate dummy cert is present in Java cacerts
+      ansible.builtin.shell: >
+        keytool -list -keystore /etc/pki/ca-trust/extracted/java/cacerts -storepass changeit | grep -i dummy
+      register: cert_validation
+      changed_when: false
+      failed_when: cert_validation.rc != 0
+
+    - name: Show validation result
+      debug:
+        msg: "Dummy cert found in Java cacerts: {{ cert_validation.stdout }}"
+
