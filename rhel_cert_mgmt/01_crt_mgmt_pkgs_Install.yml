@@ -1,6 +1,7 @@
 ---
 - name: Ensure required packages are installed on all hosts
   hosts: all
+  gather_facts: false
   become: true
   vars:
     become_user: ec2-user
