@@ -44,10 +44,10 @@
         group: root
         mode: '0644'
 
-     - name: Validate that cert file was copied and is not empty
-       ansible.builtin.stat:
-         path: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
-       register: cert_stat
+    - name: Validate that cert file was copied and is not empty
+      ansible.builtin.stat:
+        path: "/etc/pki/ca-trust/source/anchors/{{ cert_file }}"
+      register: cert_stat
 
     - name: Fail if the cert file is empty or missing
       ansible.builtin.fail:
