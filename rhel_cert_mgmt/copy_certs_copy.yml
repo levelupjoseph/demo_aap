@@ -37,7 +37,14 @@
       
     - name: Update CA trust
       ansible.builtin.command: update-ca-trust
+      register: update_ca_result
+      become: true
 
+    - name: Show output if update-ca-trust failed
+      ansible.builtin.debug:
+        var: update_ca_result.stderr
+      when: update_ca_result.rc != 0
+      
     - name: Regenerate Java cacerts file
       ansible.builtin.command: >
         p11-kit extract --format=java-cacerts --filter=certificates
