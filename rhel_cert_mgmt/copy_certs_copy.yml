@@ -23,14 +23,18 @@
         paths: /opt/certs/
         patterns: "*.crt"
       register: found_certs
-
+  
     - name: Copy certificate files to anchors
       ansible.builtin.copy:
         src: "{{ item.path }}"
         dest: /etc/pki/ca-trust/source/anchors/
         remote_src: yes
       loop: "{{ found_certs.files }}"
-
+  
+    - name: Set SELinux to permissive (temporary)
+      ansible.builtin.command: setenforce 0
+      become: true
+      
     - name: Update CA trust
       ansible.builtin.command: update-ca-trust
 
