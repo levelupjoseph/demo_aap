@@ -9,10 +9,15 @@
       ansible.builtin.shell: cp /etc/pki/ca-trust/extracted/java/cacerts /root/cacerts.back
       become: true
 
+    - name: Ensure /opt/certs/ exists
+      ansible.builtin.stat:
+        path: /opt/certs/
+      register: certs_dir
+
     - name: List directories
       ansible.builtin.shell: "cd /opt/certs/ && ls -lrt"
-      become: false  # No need for elevated permissions just to list
-
+      when: certs_dir.stat.exists
+      
     - name: Find certificate files on remote host
       ansible.builtin.find:
         paths: /opt/certs/
