@@ -37,13 +37,3 @@
       ansible.builtin.command: >
         p11-kit extract --format=java-cacerts --filter=certificates
         --overwrite --purpose server-auth /root/cacerts
-
-    - name: Overwrite system cacerts with regenerated file
-      ansible.builtin.shell: cp /root/cacerts /etc/pki/ca-trust/extracted/java/cacerts
-      register: overwrite_result
-      ignore_errors: true
-
-    - name: Show result of system cacerts overwrite
-      ansible.builtin.debug:
-        var: overwrite_result.stderr
-      when: overwrite_result.rc != 0
