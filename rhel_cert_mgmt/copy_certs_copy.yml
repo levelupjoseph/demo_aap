@@ -5,47 +5,48 @@
   become_user: root
   tasks:
 
-    - name: Backup cacerts file to root directory
+    - name: Backup cacerts file to /root
       ansible.builtin.shell: cp /etc/pki/ca-trust/extracted/java/cacerts /root/cacerts.back
-      become: true
+      ignore_errors: true
 
-    - name: Ensure /opt/certs/ exists
+    - name: Ensure /opt/certs/ directory exists
       ansible.builtin.stat:
         path: /opt/certs/
       register: certs_dir
 
-    - name: List directories
-      ansible.builtin.shell: "cd /opt/certs/ && ls -lrt"
+    - name: List certs in /opt/certs if present
+      ansible.builtin.shell: ls -lrt /opt/certs/
       when: certs_dir.stat.exists
-      
+
     - name: Find certificate files on remote host
       ansible.builtin.find:
         paths: /opt/certs/
         patterns: "*.crt"
       register: found_certs
-  
+      when: certs_dir.stat.exists
+
     - name: Copy certificate files to anchors
       ansible.builtin.copy:
         src: "{{ item.path }}"
         dest: /etc/pki/ca-trust/source/anchors/
         remote_src: yes
       loop: "{{ found_certs.files }}"
-  
- #  - name: Set SELinux to permissive (temporary)
- #    ansible.builtin.command: setenforce 0
- #    become: true
-      
-#   - name: Update CA trust
-#     ansible.builtin.command: update-ca-trust
-#     register: update_ca_result
-#     become: true
+      when: certs_dir.stat.exists and found_certs.matched > 0
 
-#    - name: Show output if update-ca-trust failed
-#      ansible.builtin.debug:
-#        var: update_ca_result.stderr
-#     when: update_ca_result.rc != 0
-      
-    - name: Regenerate Java cacerts file
+    - name: Extract Java cacerts to /root/cacerts
       ansible.builtin.command: >
         p11-kit extract --format=java-cacerts --filter=certificates
-        --overwrite --purpose server-auth /etc/pki/ca-trust/extracted/java/cacerts
+        --overwrite --purpose server-auth /root/cacerts
+
+    - name: Attempt to copy regenerated cacerts to system path
+      ansible.builtin.copy:
+        src: /root/cacerts
+        dest: /etc/pki/ca-trust/extracted/java/cacerts
+        remote_src: true
+        force: true
+      register: copy_result
+      ignore_errors: true
+
+    - name: Show result of system cacerts copy
+      ansible.builtin.debug:
+        var: copy_result
