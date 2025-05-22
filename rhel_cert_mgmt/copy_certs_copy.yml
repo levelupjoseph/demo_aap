@@ -31,9 +31,9 @@
         remote_src: yes
       loop: "{{ found_certs.files }}"
   
-    - name: Set SELinux to permissive (temporary)
-      ansible.builtin.command: setenforce 0
-      become: true
+ #  - name: Set SELinux to permissive (temporary)
+ #    ansible.builtin.command: setenforce 0
+ #    become: true
       
     - name: Update CA trust
       ansible.builtin.command: update-ca-trust
