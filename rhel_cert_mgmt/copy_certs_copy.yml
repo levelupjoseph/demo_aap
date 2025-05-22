@@ -5,36 +5,30 @@
   become_user: root
   tasks:
 
-    - name: Backup cacerts file using copy module
-      ansible.builtin.copy:
-        src: /etc/pki/ca-trust/extracted/java/cacerts
-        dest: /etc/pki/ca-trust/extracted/java/cacerts.back
-        remote_src: yes
-        unsafe_writes: true
+    - name: Backup cacerts file using shell command
+      ansible.builtin.shell: cp /etc/pki/ca-trust/extracted/java/cacerts /etc/pki/ca-trust/extracted/java/cacerts.back
 
     - name: List directories
       ansible.builtin.shell: "cd /opt/certs/ && ls -lrt"
-      delegate_to: localhost
-      become: false  # Not needed here
+      become: false  # No need for elevated permissions just to list
+
+    - name: Find certificate files on remote host
+      ansible.builtin.find:
+        paths: /opt/certs/
+        patterns: "*.crt"
+      register: found_certs
 
     - name: Copy certificate files to anchors
       ansible.builtin.copy:
-        src: "{{ item }}"
+        src: "{{ item.path }}"
         dest: /etc/pki/ca-trust/source/anchors/
-        remote_src: no
-      with_fileglob:
-        - "/opt/certs/*.crt"
-      become: true
-      become_user: root
+        remote_src: yes
+      loop: "{{ found_certs.files }}"
 
     - name: Update CA trust
       ansible.builtin.command: update-ca-trust
-      become: true
-      become_user: root
 
     - name: Regenerate Java cacerts file
       ansible.builtin.command: >
         p11-kit extract --format=java-cacerts --filter=certificates
         --overwrite --purpose server-auth /etc/pki/ca-trust/extracted/java/cacerts
-      become: true
-      become_user: root
