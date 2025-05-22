@@ -5,8 +5,9 @@
   become_user: root
   tasks:
 
-    - name: Backup cacerts file using shell command
-      ansible.builtin.shell: cp /etc/pki/ca-trust/extracted/java/cacerts /etc/pki/ca-trust/extracted/java/cacerts.back
+    - name: Backup cacerts file to root directory
+      ansible.builtin.shell: cp /etc/pki/ca-trust/extracted/java/cacerts /root/cacerts.back
+      become: true
 
     - name: List directories
       ansible.builtin.shell: "cd /opt/certs/ && ls -lrt"
