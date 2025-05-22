@@ -2,7 +2,7 @@
 - name: Cert copy on Linux Servers
   hosts: localhost
   become: true
-  become_user: root
+#  become_user: root
   tasks:
   - name: Backup cacerts file 
     copy: 
